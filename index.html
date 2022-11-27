@@ -1,0 +1,105 @@
+<?php
+include_once 'common/header.php';
+$numlimit = 4;
+if (showPostsInHomePage($numlimit)) $showpostsinhomepage = showPostsInHomePage($numlimit);
+$lastpostid = 2000;
+if (showingSlider()) $showslider = showingSlider();
+$postsCount = countAllPosts();
+?>
+
+<!------------Slider Section Start------------>
+<?php
+if (isset($showslider)) { ?>
+    <section class="blank"></section>
+
+    <section class="slider-container">
+        <div class="owl-carousel owl-theme">
+            <?php foreach ($showslider as $value) { ?>
+                <a href="<?php echo SITE_ADDRESS . 'post/'. $value['id'] ?>/<?php echo $value['title'] ?>">
+                    <div class="item">
+                        <div class="overSlideCN"><p class="overSlider"><?php echo $value['title'] ?></p>
+                            <span><?php
+                                echo showCategoryForSlider($value['category']);
+                                ?></span></div>
+                        <img src="<?php echo SITE_ADDRESS.$value['imageheader'] ?>"></div>
+                </a>
+            <?php } ?>
+        </div>
+    </section>
+
+<?php } ?>
+<!------------Slider Section End------------>
+<!------------Content Section Start------------>
+<div>
+    <section class="home-posts-container postssectionhadi">
+        <?php
+        if (isset($showpostsinhomepage) && !empty($showpostsinhomepage)) {
+            foreach ($showpostsinhomepage as $value) {
+                $favclass = '';
+                $likeclass = '';
+                if ((isset($_SESSION['idlogin']) && !empty($_SESSION['idlogin'])) || (isset($_SESSION['isadmin']) && ($_SESSION['isadmin'] == 0 || $_SESSION['isadmin'] == 1 || $_SESSION['isadmin'] == 2))) {
+
+                    if(isset($_SESSION['isadmin']) && ($_SESSION['isadmin'] == 0 || $_SESSION['isadmin'] == 1 || $_SESSION['isadmin'] == 2)){
+                        $like = checkPostIsLikedOrNot($value['id'], $_SESSION['idadmin']);
+                    } else {
+                        $like = checkPostIsLikedOrNot($value['id'], $_SESSION['idlogin']);
+                    }
+                    if ($like == 1) $likeclass = 'outline';
+                    else if ($like == 0) $likeclass = 'red';
+                    if(isset($_SESSION['isadmin']) && ($_SESSION['isadmin'] == 0 || $_SESSION['isadmin'] == 1 || $_SESSION['isadmin'] == 2)){
+                        $fav = checkPostIsFavoriteOrNot($value['id'], $_SESSION['idadmin']);
+                    } else {
+                        $fav = checkPostIsFavoriteOrNot($value['id'], $_SESSION['idlogin']);
+                    }
+
+                    if ($fav == 1) $favclass = 'yellow';
+                    else if ($fav == 0) $favclass = 'outline';
+                }
+                $cat = showPostCategory($value['category']);
+                ?>
+                <div class="post-card">
+                    <div class="post-pic" data-title="<?php echo $value['title']; ?>"
+                         data-level="<?php echo $value['id']; ?>">
+                        <span class="catNameCard"><?php echo $cat['name'] ?></span>
+                        <a href="<?php echo SITE_ADDRESS. 'post/'. $value['id']; ?>/<?php echo $value['title']; ?>"><img
+                                    src="<?php if ($value['imginhome'] == 1) echo SITE_ADDRESS. $value['imageencode']; else echo SITE_ADDRESS. $value['imageheader']; ?>"></a>
+                        <i class="heart big icon <?php echo $likeclass; ?> likeme"
+                           data-level="<?php echo $value['id'] ?>"></i>
+                        <i class="star big icon favme <?php echo $favclass; ?>"
+                           data-level="<?php echo $value['id'] ?>"></i>
+                        <i class="big comment <?php if (isset($_SESSION['idlogin']) || (isset($_SESSION['isadmin']) && ($_SESSION['isadmin'] == 0 || $_SESSION['isadmin'] == 1) || $_SESSION['isadmin'] == 2)) { ?> outline <?php } ?> icon morehadi"
+                           data-title="<?php echo $value['title']; ?>"
+                           data-level="<?php echo $value['id']; ?>" onclick="moreWithComment('<?php echo SITE_ADDRESS.'post/'.$value['id'].'/'.$value['title'] ?>')"></i>
+                        <?php $lastpostid = $value['id']; ?>
+                    </div>
+                    <div class="post-text">
+                        <div class="card-title"><?php echo $value['title'] ?></div>
+                        <div class="post-text-span"> <?php
+                            $content = $value['content'];
+                            $nshowncontent = substr($content, 0, 250);
+                            $showncontent = str_replace('<br/>', ' ', $nshowncontent);
+                            if (strlen($content) >= 250) $showncontent .= '...';
+                            echo $showncontent;
+                            ?>
+                        </div>
+                        <div class="card-date"><span><?php echo $value['date']; ?></span> <span
+                                    class="cardAuthor"><?php echo getPostAuthorName($value['authorid']); ?></span></div>
+                    </div>
+
+                </div>
+            <?php }
+        } ?>
+    </section>
+    <?php if ($postsCount - $numlimit >= 1) { ?>
+        <div class="load-more-cn ajaxLoadMoreButton" data-level="<?php echo $lastpostid; ?>"
+             data-limit="<?php echo $numlimit; ?>">
+            Load More
+        </div>
+    <?php } ?>
+
+</div>
+<script src="files/js/CMhomejs.js"></script>
+
+<?php
+include_once 'common/footer.php';
+?>
